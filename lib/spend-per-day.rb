@@ -66,6 +66,8 @@ g.theme = {
 # Add the dataset
 g.data('Account balance', @transactions.map{|t| t[:balance].to_i })
 
+g.minimum_value = 0
+
 # Write the graph to disk
 g.write('balance.png')
 
