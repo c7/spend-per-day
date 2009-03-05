@@ -125,7 +125,11 @@ class SpendPerDay
       
       # Check if it is before or after payday
       if log >= payday
-        next_payday = Date.new log.year, log.month + 1, PAYDAY
+        if log.month == 12
+          next_payday = Date.new log.year + 1, 1, PAYDAY
+        else
+          next_payday = Date.new log.year, log.month + 1, PAYDAY
+        end
       elsif log < payday
         next_payday = payday
       end
