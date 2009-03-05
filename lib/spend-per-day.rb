@@ -30,7 +30,7 @@ class Array
   end
   
   def floor_mean(num = 1)
-    mean.to_i / num * num if num > 0
+    (mean.to_i / num * num) if num > 0
   end
 end
 
@@ -94,6 +94,16 @@ class SpendPerDay
     # Add the dataset
     g.data('Account balance', @transactions.map{|t| t[:balance].to_i })
     
+    # Get the middle transaction
+    middle_pos = (@transactions.length / 2)
+    
+    # Add the last date as a label
+    g.labels = {
+      0 => @transactions.first[:log_date].to_s,
+      middle_pos => @transactions[middle_pos][:log_date].to_s,
+      @transactions.length - 1 => @transactions.last[:log_date].to_s
+    }
+    
     # Set the minimum value to 0 for a better overview
     g.minimum_value = 0
     
@@ -113,10 +123,10 @@ class SpendPerDay
   def spend_per_day_graph(file = 'spend-per-day.png')
     
     # First we need to populate the dataset
+    spend_per_day_data  = []
+    spend_per_day_dates = []
     
-    spend_per_day_data = []
-    
-    @transactions.each do |transaction|
+    @transactions.each_with_index do |transaction, index|
       log = transaction[:log_date]
       payday = Date.new log.year, log.month, PAYDAY
       
@@ -139,6 +149,7 @@ class SpendPerDay
       if log.day < 23 || log.day > 25
         # Add the ammount that can be spent per day to the data array
         spend_per_day_data << (transaction[:balance] / days_to_go).to_i
+        spend_per_day_dates << transaction[:log_date].to_s
       end
     end
     
@@ -150,6 +161,16 @@ class SpendPerDay
     
     # Add the dataset
     g.data('Spend Per Day', spend_per_day_data)
+    
+    # Get the middle transaction
+    middle_pos = (spend_per_day_dates.length / 2)
+    
+    # Add the last date as a label
+    g.labels = {
+      0 => spend_per_day_dates.first,
+      middle_pos => spend_per_day_dates[middle_pos],
+      spend_per_day_data.length - 1 => spend_per_day_dates.last
+    }
     
     # Set the minimum value to 0 for a better overview
     g.minimum_value = 0
