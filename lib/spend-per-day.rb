@@ -20,7 +20,22 @@ class Array
       [i, v]
     }.flatten]
   end
+  
+  def sum
+    inject( nil ) { |sum,x| sum ? sum+x : x } 
+  end
+  
+  def mean
+    sum.to_f / size
+  end
+  
+  def floor_mean(num = 1)
+    mean.to_i / num * num if num > 0
+  end
 end
+
+# Define which day is the payday
+PAYDAY = 25
 
 # Empty data array
 @transactions = []
@@ -48,20 +63,23 @@ end
 # Reverse the transactions
 @transactions.reverse!
 
-#
-# Generate the Balance graph
-#
-
-# Create a 500px wide line graph object
-g = Gruff::Line.new(500)
-
-# Create a Code7 theme
-g.theme = {
+# Define the Code7 theme
+code7_theme = {
    :colors            => %w('#7CAF3C'),
    :marker_color      => '#7CAF3C',
    :font_color        => '#2F5C1A',
    :background_colors => %w(white #D8FFD2)
  }
+
+#
+# Generate the Balance graph
+#
+
+# Create a 500px wide line graph object
+g = Gruff::Line.new(1000)
+
+# Use the Code7 theme
+g.theme = code7_theme
 
 # Add the dataset
 g.data('Account balance', @transactions.map{|t| t[:balance].to_i })
@@ -69,8 +87,70 @@ g.data('Account balance', @transactions.map{|t| t[:balance].to_i })
 # Set the minimum value to 0 for a better overview
 g.minimum_value = 0
 
+# Set the marker line count
+g.marker_count = 10
+
+g.hide_dots = true
+
+
 # Write the graph to disk
 g.write('balance.png')
 
-# Open the image (TEMPORARY)
-`open balance.png`
+
+#
+# Generate the "Spend Per Day" graph
+#
+
+spend_per_day_data = []
+
+@transactions.each do |transaction|
+  log = transaction[:log_date]
+  payday = Date.new log.year, log.month, PAYDAY
+  
+  # Check if the payday is in the weekend
+  if payday.cwday > 5
+    payday = Date.new log.year, log.month, PAYDAY - (payday.cwday - 5)
+  end
+  
+  # Check if it is before or after payday
+  if log >= payday
+    next_payday = Date.new log.year, log.month + 1, PAYDAY
+  elsif log < payday
+    next_payday = payday
+  end
+  
+  # Calculate the number of days until the next payday
+  days_to_go = (next_payday - log).to_i
+  
+  # Not interested in the peaks around payday
+  if log.day < 23 || log.day > 25
+    # Add the ammount that can be spent per day to the data array
+    spend_per_day_data << (transaction[:balance] / days_to_go).to_i
+  end
+end
+
+# Create a 500px wide line graph object
+g = Gruff::Line.new(1000)
+
+# Use the Code7 theme
+g.theme = code7_theme
+
+# Add the dataset
+g.data('Spend Per Day', spend_per_day_data)
+
+# Set the minimum value to 0 for a better overview
+g.minimum_value = 0
+
+# Set the maximum value to the mean value, floored to closest thousand
+g.maximum_value = spend_per_day_data.floor_mean(1000)
+
+# Set the marker line count
+g.marker_count = 10
+
+g.hide_dots = true
+
+# Write the graph to disk
+g.write('spend-per-day.png')
+
+# Open the images
+`open balance.png spend-per-day.png`
