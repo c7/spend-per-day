@@ -41,7 +41,7 @@ PAYDAY = 25
 @transactions = []
 
 # Iterate over the bank statement
-CSV.open('../bank_statement.txt', 'r', "\t") do |row|
+CSV.open(File.dirname(__FILE__) + '/../bank_statement.txt', 'r', "\t") do |row|
   @transactions << {
     # Parse the log date, interpret 2-digit years as 20XX
     :log_date => Date.parse(row[0], true),
@@ -151,6 +151,3 @@ g.hide_dots = true
 
 # Write the graph to disk
 g.write('spend-per-day.png')
-
-# Open the images
-`open balance.png spend-per-day.png`
