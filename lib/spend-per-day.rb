@@ -20,18 +20,6 @@ class Array
       [i, v]
     }.flatten]
   end
-  
-  def sum
-    inject( nil ) { |sum,x| sum ? sum+x : x } 
-  end
-  
-  def mean
-    sum.to_f / size
-  end
-  
-  def floor_mean(num = 1)
-    (mean.to_i / num * num) if num > 0
-  end
 end
 
 class SpendPerDay
@@ -174,10 +162,7 @@ class SpendPerDay
     
     # Set the minimum value to 0 for a better overview
     g.minimum_value = 0
-    
-    # Set the maximum value to the mean value, floored to closest thousand
-    g.maximum_value = spend_per_day_data.floor_mean(1000)
-    
+        
     # Set the marker line count
     g.marker_count = 10
     
